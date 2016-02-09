@@ -20,10 +20,14 @@ compass.getHeading('x', 'y', function (err, heading) {
 });
 ```
 
-# Further reading
+## Further reading
 
 - [The documentation](https://www.adafruit.com/datasheets/HMC5883L_3-Axis_Digital_Compass_IC.pdf).
 - [The equivalent Python code](http://www.farnell.com/datasheets/1670762.pdf) for which this library is based on.
+
+## To Do (to reach version 1.0):
+
+- Make use of all the functionality of the code (e.g. enable the mode register on the chip).
 
 ## License
 
