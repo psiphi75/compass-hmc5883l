@@ -23,7 +23,7 @@
 
 'use strict';
 
-var Compass = require('./Compass');
+var Compass = require('compass-hmc5883l');
 var compass = new Compass(2);
 
 // Get the compass values every 100 milliseconds
@@ -42,7 +42,7 @@ function printHeadingCB(err, heading) {
 }
 
 //
-// var Compass = require('./Compass');
+// var Compass = require('compass-hmc5883l');
 // var compass = new Compass(2);
 //
 // // Get the compass values
