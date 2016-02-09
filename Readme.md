@@ -13,7 +13,7 @@ Using it:
 ```javascript
 var HMC5883L = require('compass-hmc5883l');
 
-// Connect with the compass on i2c bus number 2
+// Connect with the HMC5883L compass on i2c bus number 2
 var compass = new HMC5883L(2);
 
 // Get the compass values between x and y.  heading is returned in radians.
