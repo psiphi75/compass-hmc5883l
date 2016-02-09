@@ -11,8 +11,10 @@ npm install compass-hmc5883l
 Using it:
 
 ```javascript
-var Compass = require('compass-hmc5883l');
-var compass = new Compass(2);
+var HMC5883L = require('compass-hmc5883l');
+
+// Connect with the compass on i2c bus number 2
+var compass = new HMC5883L(2);
 
 // Get the compass values between x and y.  heading is returned in radians.
 compass.getHeading('x', 'y', function (err, heading) {
