@@ -1,3 +1,27 @@
+/*********************************************************************
+ *                                                                   *
+ *   Copyright 2016 Simon M. Werner                                  *
+ *                                                                   *
+ *   Licensed to the Apache Software Foundation (ASF) under one      *
+ *   or more contributor license agreements.  See the NOTICE file    *
+ *   distributed with this work for additional information           *
+ *   regarding copyright ownership.  The ASF licenses this file      *
+ *   to you under the Apache License, Version 2.0 (the               *
+ *   "License"); you may not use this file except in compliance      *
+ *   with the License.  You may obtain a copy of the License at      *
+ *                                                                   *
+ *      http://www.apache.org/licenses/LICENSE-2.0                   *
+ *                                                                   *
+ *   Unless required by applicable law or agreed to in writing,      *
+ *   software distributed under the License is distributed on an     *
+ *   "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY          *
+ *   KIND, either express or implied.  See the License for the       *
+ *   specific language governing permissions and limitations         *
+ *   under the License.                                              *
+ *                                                                   *
+ *********************************************************************/
+
+'use strict';
 
 var HMC5883L_ADDRESS = 0x1E;
 var MODE_REGISTER = 0x02;
@@ -86,6 +110,26 @@ Compass.prototype.getHeading = function (axis1, axis2, callback) {
         }
 
         callback(null, heading);
+    });
+};
+
+
+/**
+ * Get the heading in decimal degrees, where heading is along axis1 and heading
+ * is between 0 and 360 degrees.
+ * @param  {Function} callback Standard callback
+ * @param  {string} axis1 The first axis (determines North)
+ * @param  {string} axis2 The second axis (determines West)
+ */
+Compass.prototype.getHeadingDegrees = function (axis1, axis2, callback) {
+
+    this.getHeading(axis1, axis2, function (err, heading) {
+        if (err) {
+            callback(err, heading);
+            return;
+        }
+
+        callback(null, heading * 180 / (2 * Math.PI));
     });
 };
 
