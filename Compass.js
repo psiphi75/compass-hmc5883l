@@ -181,29 +181,48 @@ Compass.prototype.getRawValues = function (callback) {
 Compass.prototype.getHeading = function (axis1, axis2, callback) {
 
     var self = this;
-    this.getRawValues(function(err, values) {
+    this.getRawValues(function(err, vector) {
         if (err) {
             callback(err);
             return;
         }
-        var VALID_AXIS = ['x', 'y', 'z'];
-        if (VALID_AXIS.indexOf(axis1) < 0 || VALID_AXIS.indexOf(axis2) < 0 || axis1 === axis2) {
-            throw new Error('Compass.getHeading(): At least of the supplied axis are not valid, they must be different and one of :', VALID_AXIS);
-        }
 
-        var twoPies = 2 * Math.PI;
-        var heading = Math.atan2(values[axis2], values[axis1]);
-        heading += self.declination;
-
-        if (heading < 0) {
-            heading += twoPies;
-        }
-        if (heading > twoPies) {
-            heading -= twoPies;
-        }
-
-        callback(null, heading);
+        callback(null, self.calcHeading(axis1, axis2, vector).bind(self));
     });
+};
+
+
+/**
+ * Calculate the heading in radians, where heading is along axis1 and heading is between
+ * 0 and 2 * PI.
+ * @param {string} axis1 The first axis (determines North)
+ * @param {string} axis2 The second axis (determines West)
+ * @param {object} vector the {x, y, z} vector
+ * @return the heading in radians
+ */
+Compass.prototype.calcHeading = function calcHeading(axis1, axis2, vector) {
+
+    var VALID_AXIS = ['x', 'y', 'z'];
+    if (VALID_AXIS.indexOf(axis1) < 0 || VALID_AXIS.indexOf(axis2) < 0 || axis1 === axis2) {
+        throw new Error('Compass.getHeading(): At least of the supplied axis are not valid, they must be different and one of :', VALID_AXIS);
+    }
+
+    var twoPies = 2 * Math.PI;
+    var heading = Math.atan2(vector[axis2], vector[axis1]);
+    heading += this.declination;
+
+    if (heading < 0) {
+        heading += twoPies;
+    }
+    if (heading > twoPies) {
+        heading -= twoPies;
+    }
+
+    return heading;
+};
+
+Compass.prototype.calcHeadingDegrees = function calcHeading(axis1, axis2, vector) {
+    return this.calcHeading(axis1, axis2, vector) * 180 / Math.PI;
 };
 
 
