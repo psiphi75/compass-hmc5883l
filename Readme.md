@@ -4,32 +4,68 @@ This is a library to run the Honeywell HMC5883L 3-axis digital compass IC via th
 
 Install:
 
-```bash
+```sh
 npm install compass-hmc5883l
 ```
 
 Using it:
 
-```javascript
+```JavaScript
 var HMC5883L = require('compass-hmc5883l');
 
 // Connect with the HMC5883L compass on i2c bus number 2
 var compass = new HMC5883L(2);
 
-// Get the compass values between x and y.  heading is returned in radians.
-compass.getHeading('x', 'y', function (err, heading) {
+// Get the compass values between x and y.  Heading is returned in degrees.
+compass.getHeadingDegrees('x', 'y', function (err, heading) {
     console.log(heading * 180 / Math.PI);
+});
+
+// The following reading will return {x, y, z} values in Gauss:
+compass.getRawValues(function (err, vals) {
+    console.log(vals);
 });
 ```
 
 ## Further reading
 
 - [The documentation](https://www.adafruit.com/datasheets/HMC5883L_3-Axis_Digital_Compass_IC.pdf).
-- [The equivalent Python code](http://www.farnell.com/datasheets/1670762.pdf) for which this library is based on.
+- [The equivalent Python code](https://github.com/rm-hull/hmc5883l) for which this library is partially based on.
 
-## To Do (to reach version 1.0):
+## Options
 
-- Make use of all the functionality of the code (e.g. enable the mode register on the chip).
+You can initialise the compass with options.  Below is an example along with documentation.
+
+```JavaScript
+var options = {
+    /*
+     * Pass the i2c library as an option.  This saves us from loading the
+     * library twice.
+     */
+    i2c: i2c,
+
+    /*
+     * The sample rate (Hz), must be one of '0.75', '1.5', '3', '7.5',
+     * '15', '30', or '75'.  Default is '15' Hz (samples per second).
+     */
+    sampleRate: '15', /* default */
+
+    /*
+     * The declination, in degrees.  If this is provided the result
+     * will be true north, as opposed to magnetic north. See the
+     * following link: https://www.npmjs.com/package/geomagnetism
+     */
+    declination: 19.1621,
+
+    /*
+     * The scale range to use.  See pp13 of the technical documentation.  
+     * Different expected magnetic intensities  require different scales.
+     */
+    scale: '0.88' /* default */
+};
+
+var compass = new HMC5883L(2, options);
+```
 
 ## License
 

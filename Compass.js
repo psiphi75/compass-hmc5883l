@@ -23,14 +23,49 @@
 
 'use strict';
 
+/**
+ * Technical documentation: https://www.adafruit.com/datasheets/HMC5883L_3-Axis_Digital_Compass_IC.pdf
+ * Based on code from: https://github.com/rm-hull/hmc5883l/blob/master/hmc5883l.py
+ */
+
 var HMC5883L_ADDRESS = 0x1E;
-var MODE_REGISTER = 0x02;
-var MEASUREMENT_CONTINUOUS = 0x00;
-// var MEASUREMENT_SINGLE_SHOT = 0x01;
-// var MEASUREMENT_IDLE = 0x03;
+var HMC5883L_READ_BLOCK = 0x00;
+
+// Configuration Register A: See pp12 of the technical documentation.
+var HMC5883L_CONFIG_A_REGISTER = 0x00;
+var DEFAULT_CFG_A_MA = 0x03;        // MA1 to MA0 - 8 samples on average
+var DEFAULT_SAMPLE_RATE = '15';
+var sampleRateMap = {
+    '0.75': 0,
+    '1.5': 1,
+    '3': 2,
+    '7.5': 3,
+    '15': 4,    /* Default value */
+    '30': 5,
+    '75': 6
+};
+
+// Configuration Register B: See pp13 of the technical documentation.
+var HMC5883L_SCALE_REGISTER = 0x01;
+var DEFAULT_SCALE = '0.88';
+var scaleMap = {
+    '0.88': {reg: 0, scalar: 0.73}, /* Default value */
+    '1.3': {reg: 1, scalar: 0.92},
+    '1.9': {reg: 2, scalar: 1.22},
+    '2.5': {reg: 3, scalar: 1.52},
+    '4.0': {reg: 4, scalar: 2.27},
+    '4.7': {reg: 5, scalar: 2.56},
+    '5.6': {reg: 6, scalar: 3.03},
+    '8.1': {reg: 7, scalar: 4.35}
+};
+
+var HMC5883L_MODE_REGISTER = 0x02;
+var HMC5883L_MODE_MEASURE_CONTINUOUS = 0x00;
+// var HMC5883L_MODE_MEASUREMENT_SINGLE_SHOT = 0x01;
+// var HMC5883L_MODE_MEASUREMENT_IDLE = 0x03;
 
 
-function twos_comp(val, bits) {
+function twos_complement(val, bits) {
     if ((val & (1 << (bits - 1))) !== 0 ){
         val = val - (1 << bits);
     }
@@ -41,14 +76,52 @@ function twos_comp(val, bits) {
 /**
  * Initalise the compass.
  * @param {number}   i2cBusNum The i2c bus number.
+ * @param {object}  options   The additional options.
+ *
+ * Options:
+ *   i2c: the i2c library (such that we don't have to load it twice).
+ *   scale (string): The scale range to use.  See pp13 of the technical documentation.  Default is '0.88'.
+ *   sampleRate (string): The sample rate (Hz), must be one of .  Default is '15' Hz (samples per second).
+ *   declination (number): The declination, in degrees.  If this is provided the result will be true north, as opposed to magnetic north.
  */
-function Compass(i2cBusNum) {
+function Compass(i2cBusNum, options) {
 
     if (typeof i2cBusNum !== 'number') {
         throw new Error('Compass: i2cBusNum must be a number.');
     }
 
-    this.i2c = require('i2c-bus').openSync(i2cBusNum);
+    if (!options) {
+        options = {};
+    }
+    this.i2c = (options.i2c || require('i2c-bus')).openSync(i2cBusNum);
+
+    // Set up the scale setting
+    this.scale = scaleMap[options.scale || DEFAULT_SCALE];
+    if (!this.scale) {
+        throw new Error('Compass: scale incorrect defined in options: ', options.scale);
+    }
+
+    // Set up the config_A_value
+    var sampleRate = sampleRateMap[options.sampleRate || DEFAULT_SAMPLE_RATE];
+    if (!sampleRate) {
+        throw new Error('Compass: scale incorrect defined in options: ', options.sampleRate);
+    }
+    var config_A_value = (DEFAULT_CFG_A_MA << 5) | (sampleRate << 2);
+
+    // Now we can init the HMC5883L module.
+    try {
+        this.i2c.writeByteSync(HMC5883L_ADDRESS, HMC5883L_CONFIG_A_REGISTER, config_A_value);
+        this.i2c.writeByteSync(HMC5883L_ADDRESS, HMC5883L_SCALE_REGISTER, this.scale.reg << 5);
+        this.i2c.writeByteSync(HMC5883L_ADDRESS, HMC5883L_MODE_REGISTER, HMC5883L_MODE_MEASURE_CONTINUOUS);
+    } catch (ex) {
+        console.error('Gyroscope(): there was an error initialising: ', ex);
+    }
+
+    // Set up declination, default to zero.
+    if (!options.declination) {
+        options.declination = 0;
+    }
+    this.declination = options.declination / 180 * Math.PI;
 
 }
 
@@ -60,25 +133,41 @@ Compass.prototype.getRawValues = function (callback) {
     var BUF_LEN = 12;
     var buf = new Buffer(BUF_LEN);
     var self = this;
-    this.i2c.writeByte(HMC5883L_ADDRESS, MODE_REGISTER, MEASUREMENT_CONTINUOUS, function (err) {
-        if (err) {
-            callback(err);
-            return;
+
+    try {
+        self.i2c.readI2cBlock(HMC5883L_ADDRESS, HMC5883L_READ_BLOCK, BUF_LEN, buf, i2cCallback);
+    } catch (ex) {
+        console.error('ERROR: Compass.getRawValues(): error with i2c.writeByte() or i2c.readI2cBlock: ', ex);
+        if (callback) {
+            callback(ex);
         }
-        self.i2c.readI2cBlock(HMC5883L_ADDRESS, MEASUREMENT_CONTINUOUS, BUF_LEN, buf, function (err2) {
-            if (err2) {
-                callback(err2);
-                return;
+        callback = null;
+    }
+
+    function i2cCallback (err) {
+
+        if (err) {
+            if (callback) {
+                callback(err);
             }
-
+        } else {
             callback(null, {
-                x: twos_comp(buf[3] * 256 + buf[4], 16),
-                y: twos_comp(buf[7] * 256 + buf[8], 16),
-                z: twos_comp(buf[5] * 256 + buf[6], 16)
+                x: convert(3),
+                y: convert(7),
+                z: convert(5)
             });
-        });
-    });
+        }
+        callback = null;
 
+    }
+
+    function convert(offset) {
+        var val = twos_complement(buf[offset] << 8 | buf[offset + 1], 16);
+        if (val === -4096) {
+            return null;
+        }
+        return val * self.scale.scalar;
+    }
 };
 
 
@@ -91,6 +180,7 @@ Compass.prototype.getRawValues = function (callback) {
  */
 Compass.prototype.getHeading = function (axis1, axis2, callback) {
 
+    var self = this;
     this.getRawValues(function(err, values) {
         if (err) {
             callback(err);
@@ -101,12 +191,15 @@ Compass.prototype.getHeading = function (axis1, axis2, callback) {
             throw new Error('Compass.getHeading(): At least of the supplied axis are not valid, they must be different and one of :', VALID_AXIS);
         }
 
+        var twoPies = 2 * Math.PI;
         var heading = Math.atan2(values[axis2], values[axis1]);
+        heading += self.declination;
+
         if (heading < 0) {
-            heading += 2 * Math.PI;
+            heading += twoPies;
         }
-        if (heading > 2 * Math.PI) {
-            heading -= 2 * Math.PI;
+        if (heading > twoPies) {
+            heading -= twoPies;
         }
 
         callback(null, heading);
@@ -126,11 +219,14 @@ Compass.prototype.getHeadingDegrees = function (axis1, axis2, callback) {
     this.getHeading(axis1, axis2, function (err, heading) {
         if (err) {
             callback(err, heading);
-            return;
+        } else {
+            callback(null, heading * 180 / Math.PI);
         }
-
-        callback(null, heading * 180 / (2 * Math.PI));
     });
+};
+
+Compass.prototype.setDeclination = function (declination) {
+    this.declination = declination / 180 * Math.PI;
 };
 
 module.exports = Compass;

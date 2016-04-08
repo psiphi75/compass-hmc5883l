@@ -24,13 +24,7 @@
 'use strict';
 
 var Compass = require('compass-hmc5883l');
-var compass = new Compass(2);
-
-// Get the compass values every 100 milliseconds
-setInterval(function() {
-    compass.getHeading('x', 'y', printHeadingCB);
-}, 100);
-
+var compass = new Compass(1);
 
 // Gets called every time we get the values.
 function printHeadingCB(err, heading) {
@@ -40,6 +34,12 @@ function printHeadingCB(err, heading) {
     }
     console.log(heading * 180 / Math.PI);
 }
+
+// Get the compass values every 100 milliseconds
+setInterval(function() {
+    compass.getHeading('x', 'y', printHeadingCB);
+}, 100);
+
 
 //
 // var Compass = require('compass-hmc5883l');
