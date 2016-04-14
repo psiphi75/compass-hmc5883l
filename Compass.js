@@ -114,7 +114,7 @@ function Compass(i2cBusNum, options) {
         this.i2c.writeByteSync(HMC5883L_ADDRESS, HMC5883L_SCALE_REGISTER, this.scale.reg << 5);
         this.i2c.writeByteSync(HMC5883L_ADDRESS, HMC5883L_MODE_REGISTER, HMC5883L_MODE_MEASURE_CONTINUOUS);
     } catch (ex) {
-        console.error('Gyroscope(): there was an error initialising: ', ex);
+        console.error('Compass(): there was an error initialising: ', ex);
     }
 
     // Set up declination, default to zero.
