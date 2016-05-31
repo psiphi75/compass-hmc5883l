@@ -187,7 +187,7 @@ Compass.prototype.getHeading = function (axis1, axis2, callback) {
             return;
         }
 
-        callback(null, self.calcHeading(axis1, axis2, vector).bind(self));
+        callback(null, self.calcHeading(axis1, axis2, vector));
     });
 };
 
