@@ -21,11 +21,43 @@ compass.getHeadingDegrees('x', 'y', function (err, heading) {
     console.log(heading * 180 / Math.PI);
 });
 
-// The following reading will return {x, y, z} values in Gauss:
-compass.getRawValues(function (err, vals) {
+// The following reading will return {x, y, z} values in milli Tesla:
+compass.getValues(function (err, vals) {
     console.log(vals);
 });
 ```
+
+## Calibration
+
+To get more accurate results out of the magnetometer it needs to be calibrated.  The calibration technique used is
+described at [CamelSoftware](http://www.camelsoftware.com/2016/03/13/imu-maths-calculate-orientation-pt3/).
+
+To calibrate the magnetometer, run the following:
+
+```sh
+node Calibrate.js
+```
+
+Then rotate the compass around all directions (figure eights are good).  Make sure you get all the min and max values.
+The calibrated object is then returned, it looks something like the following:
+
+```JavaScript
+{
+    offset: {
+        x: 22.265,
+        y: -97.455,
+        z: -37.595
+    },
+    scale: {
+        x: 1.62950,
+        y: 1.31346,
+        z: 1.60008
+    }
+}
+```
+
+You can then use this to initialise the compass, see the [Options](#Options) section below on how to apply the changes.
+
 
 ## Further reading
 
@@ -62,6 +94,22 @@ var options = {
      * Different expected magnetic intensities  require different scales.
      */
     scale: '0.88' /* default */
+
+    /*
+     * The calibrated values.  Default offsets are 0.  Default scale values are 1.0.
+     */
+    calibration: {
+        offset: {
+            x: 22.265,
+            y: -97.455,
+            z: -37.595
+        },
+        scale: {
+            x: 1.62950,
+            y: 1.31346,
+            z: 1.60008
+        }
+    }
 };
 
 var compass = new HMC5883L(2, options);

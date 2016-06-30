@@ -23,6 +23,7 @@
 
 'use strict';
 
+
 /**
  * Technical documentation: https://www.adafruit.com/datasheets/HMC5883L_3-Axis_Digital_Compass_IC.pdf
  * Based on code from: https://github.com/rm-hull/hmc5883l/blob/master/hmc5883l.py
@@ -35,6 +36,19 @@ var HMC5883L_READ_BLOCK = 0x00;
 var HMC5883L_CONFIG_A_REGISTER = 0x00;
 var DEFAULT_CFG_A_MA = 0x03;        // MA1 to MA0 - 8 samples on average
 var DEFAULT_SAMPLE_RATE = '15';
+var DEFAULT_CALIBRATION = {
+    offset: {
+        x: 0,
+        y: 0,
+        z: 0
+    },
+    scale: {
+        x: 1,
+        y: 1,
+        z: 1
+    }
+};
+
 var sampleRateMap = {
     '0.75': 0,
     '1.5': 1,
@@ -108,6 +122,9 @@ function Compass(i2cBusNum, options) {
     }
     var config_A_value = (DEFAULT_CFG_A_MA << 5) | (sampleRate << 2);
 
+    // Set calibration
+    this.cal = options.calibration || DEFAULT_CALIBRATION;
+
     // Now we can init the HMC5883L module.
     try {
         this.i2c.writeByteSync(HMC5883L_ADDRESS, HMC5883L_CONFIG_A_REGISTER, config_A_value);
@@ -126,7 +143,7 @@ function Compass(i2cBusNum, options) {
 }
 
 /**
- * Get the raw (unscaled) values from the compass.
+ * Get the scaled and calibrated values from the compass.
  * @param  {Function} callback The standard callback -> (err, {x:number, y:number, z:number})
  */
 Compass.prototype.getRawValues = function (callback) {
@@ -152,13 +169,12 @@ Compass.prototype.getRawValues = function (callback) {
             }
         } else {
             callback(null, {
-                x: convert(3),
-                y: convert(7),
-                z: convert(5)
+                x: (convert(3) + self.cal.offset.x) * self.cal.scale.x,
+                y: (convert(7) + self.cal.offset.y) * self.cal.scale.y,
+                z: (convert(5) + self.cal.offset.z) * self.cal.scale.z
             });
         }
         callback = null;
-
     }
 
     function convert(offset) {
@@ -211,10 +227,10 @@ Compass.prototype.calcHeading = function calcHeading(axis1, axis2, vector) {
     var heading = Math.atan2(vector[axis2], vector[axis1]);
     heading += this.declination;
 
-    if (heading < 0) {
+    while (heading < 0) {
         heading += twoPies;
     }
-    if (heading > twoPies) {
+    while (heading > twoPies) {
         heading -= twoPies;
     }
 
