@@ -16,6 +16,6 @@
   "author": "Simon Werner",
   "license": "APSL-2.0",
   "dependencies": {
-    "i2c-bus": "^1.0.2"
+    "i2c-bus": "^1.0.3"
   }
 }

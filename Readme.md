@@ -1,6 +1,7 @@
 # compass-hmc5883l
 
-This is a library to run the Honeywell HMC5883L 3-axis digital compass IC via the i2c bus.  It has tested on the BeagleBone Series, but it should also work for the Raspberry Pi.
+This is a library to run the Honeywell HMC5883L 3-axis digital compass IC via the i2c bus.
+It has tested on the BeagleBone Series, but it should also work for the Raspberry Pi.
 
 Install:
 
@@ -22,14 +23,14 @@ compass.getHeadingDegrees('x', 'y', function (err, heading) {
 });
 
 // The following reading will return {x, y, z} values in milli Tesla:
-compass.getValues(function (err, vals) {
+compass.getRawValues(function (err, vals) {
     console.log(vals);
 });
 ```
 
 ## Calibration
 
-To get more accurate results out of the magnetometer it needs to be calibrated.  The calibration technique used is
+To get more accurate results out of the magnetometer it needs to be calibrated. The calibration technique used is
 described at [CamelSoftware](http://www.camelsoftware.com/2016/03/13/imu-maths-calculate-orientation-pt3/).
 
 To calibrate the magnetometer, run the following:
@@ -38,7 +39,7 @@ To calibrate the magnetometer, run the following:
 node Calibrate.js
 ```
 
-Then rotate the compass around all directions (figure eights are good).  Make sure you get all the min and max values.
+Then rotate the compass around all directions (figure eights are good). Make sure you get all the min and max values.
 The calibrated object is then returned, it looks something like the following:
 
 ```JavaScript
@@ -58,7 +59,6 @@ The calibrated object is then returned, it looks something like the following:
 
 You can then use this to initialise the compass, see the [Options](#Options) section below on how to apply the changes.
 
-
 ## Further reading
 
 - [The documentation](https://www.adafruit.com/datasheets/HMC5883L_3-Axis_Digital_Compass_IC.pdf).
@@ -66,7 +66,7 @@ You can then use this to initialise the compass, see the [Options](#Options) sec
 
 ## Options
 
-You can initialise the compass with options.  Below is an example along with documentation.
+You can initialise the compass with options. Below is an example along with documentation.
 
 ```JavaScript
 var options = {
@@ -90,7 +90,7 @@ var options = {
     declination: 19.1621,
 
     /*
-     * The scale range to use.  See pp13 of the technical documentation.  
+     * The scale range to use.  See pp13 of the technical documentation.
      * Different expected magnetic intensities  require different scales.
      */
     scale: '0.88' /* default */
@@ -119,8 +119,15 @@ var compass = new HMC5883L(2, options);
 
 Copyright 2019 Simon M. Werner
 
-Licensed to the Apache Software Foundation (ASF) under one or more contributor license agreements.  See the NOTICE file distributed with this work for additional information regarding copyright ownership.  The ASF licenses this file to you under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License.  You may obtain a copy of the License at
+Licensed to the Apache Software Foundation (ASF) under one or more contributor license agreements.
+See the NOTICE file distributed with this work for additional information regarding copyright
+ownership. The ASF licenses this file to you under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License. You may obtain a copy of the
+License at
 
-  [http://www.apache.org/licenses/LICENSE-2.0](http://www.apache.org/licenses/LICENSE-2.0)
+[http://www.apache.org/licenses/LICENSE-2.0](http://www.apache.org/licenses/LICENSE-2.0)
 
-Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the License for the specific language governing permissions and limitations under the License.
+Unless required by applicable law or agreed to in writing, software distributed under the License
+is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
+implied. See the License for the specific language governing permissions and limitations under the
+License.

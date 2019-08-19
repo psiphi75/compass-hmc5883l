@@ -260,6 +260,12 @@ Compass.prototype.getHeadingDegrees = function (axis1, axis2, callback) {
     });
 };
 
+
+/**
+ * Set the magnetic declination, in degrees.
+ * 
+ * @param  {number} declination The magnetic declination in degrees.
+ */
 Compass.prototype.setDeclination = function (declination) {
     this.declination = declination / 180 * Math.PI;
 };
