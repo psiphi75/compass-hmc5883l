@@ -11,11 +11,12 @@
     "HMC5883L",
     "i2c",
     "compass",
-    "BeagleBone"
+    "BeagleBone",
+    "Raspberry Pi"
   ],
   "author": "Simon Werner",
   "license": "APSL-2.0",
   "dependencies": {
-    "i2c-bus": "^1.0.3"
+    "i2c-bus": "^5.2.2"
   }
 }
