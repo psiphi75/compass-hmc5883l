@@ -102,22 +102,22 @@ function calcCalibration() {
         y: (min.y + max.y) / 2,
         z: (min.z + max.z) / 2
     };
-    var vmax = {
+    const vmax = {
         x: max.x - ((min.x + max.x) / 2),
         y: max.y - ((min.y + max.y) / 2),
         z: max.z - ((min.z + max.z) / 2)
     };
-    var vmin = {
-        x: min.x - ((min.x + min.x) / 2),
-        y: min.y - ((min.y + min.y) / 2),
-        z: min.z - ((min.z + min.z) / 2)
+    const vmin = {
+        x: min.x - ((min.x + max.x) / 2),
+        y: min.y - ((min.y + max.y) / 2),
+        z: min.z - ((min.z + max.z) / 2)
     };
-    var avg = {
+    const avg = {
         x: (vmax.x - vmin.x) / 2,
         y: (vmax.y - vmin.y) / 2,
         z: (vmax.z - vmin.z) / 2
     };
-    var avg_radius = (avg.x + avg.y + avg.z) / 2;
+    const avg_radius = (avg.x + avg.y + avg.z) / 3;
     scale = {
         x: avg_radius / avg.x,
         y: avg_radius / avg.y,

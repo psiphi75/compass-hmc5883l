@@ -1,6 +1,6 @@
 {
   "name": "compass-hmc5883l",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "JavaScript interface to the Honeywell HMC5883L 3-axis digital compass IC using i2c.",
   "main": "Compass.js",
   "repository": "https://github.com/psiphi75/compass-hmc5883l",
